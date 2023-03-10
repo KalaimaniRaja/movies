@@ -9,8 +9,8 @@ import {
   useColorScheme,
   View,
   Stack,
+  Button,
 } from 'react-native';
-import {Button} from 'react-native-paper';
 import config from '../config';
 
 import {
@@ -23,17 +23,28 @@ import {
 import {List} from 'react-native-paper';
 const Home = () => {
   const [movies, setMovies] = useState();
+  const [page, setPage] = useState(1);
 
   const getMovies = async () => {
     try {
       const response = await fetch(
-        'https://api.themoviedb.org/3/movie/popular?page=1&api_key=89deae649b2e4152238928670ed9d85f',
+        `https://api.themoviedb.org/3/movie/popular?page=${page}&api_key=89deae649b2e4152238928670ed9d85f`,
       );
       const res = await response.json();
       return setMovies(res);
     } catch (error) {
       return console.error(error);
     }
+  };
+
+  const prevPage = () => {
+    setPage(page - 1);
+    getMovies();
+  };
+
+  const nextPage = () => {
+    setPage(page + 1);
+    getMovies();
   };
 
   useEffect(() => {
@@ -51,36 +62,68 @@ const Home = () => {
 
   return (
     <SafeAreaView>
-      <ScrollView contentInsetAdjustmentBehavior="automatic">
-        <View style={styles.cardWrap}>
-          {movies?.results?.map((e, index) => {
-            return (
-              <View style={styles.card}>
-                <Image
-                  style={{
-                    width: '100%',
-                    height: 470,
-                  }}
-                  resizeMode="contain"
-                  resizeMethod="resize"
-                  source={{
-                    uri: `${config.tmdb.assets.baseUrlBackdropW1280}${e?.poster_path}`,
-                  }}
-                />
-                <Text style={styles.title}>{e.title}</Text>
-              </View>
-            );
-          })}
+      <View style={styles.contentContainer}>
+        <View style={styles.content}>
+          <ScrollView contentInsetAdjustmentBehavior="automatic">
+            <View style={styles.cardWrap}>
+              {movies?.results?.map(e => {
+                return (
+                  <View style={styles.card} key={e.title}>
+                    <Image
+                      style={{
+                        width: '100%',
+                        height: 470,
+                      }}
+                      resizeMode="contain"
+                      resizeMethod="resize"
+                      source={{
+                        uri: `${config.tmdb.assets.baseUrlBackdropW1280}${e?.poster_path}`,
+                      }}
+                    />
+                    <Text style={styles.title}>{e.title}</Text>
+                  </View>
+                );
+              })}
+            </View>
+          </ScrollView>
         </View>
-      </ScrollView>
+        {movies && (
+          <View style={styles.footer}>
+            <View style={styles.footerItem}>
+              {page !== 1 && (
+                <>
+                  <Button onPress={prevPage} title="Prev" color="#841584" />
+                </>
+              )}
+              <Text style={{color: '#fff', marginHorizontal: 5}}></Text>
+              {page !== movies?.total_pages && (
+                <>
+                  <Button onPress={nextPage} title="Next" color="#841584" />
+                </>
+              )}
+            </View>
+
+            <View style={styles.footerItem}>
+              <Text style={styles.footerText}>
+                pages : {movies?.total_pages}
+              </Text>
+              <Text style={{color: '#fff', marginHorizontal: 5}}>|</Text>
+              <Text style={styles.footerText}>current page : {page}</Text>
+              <Text style={{color: '#fff', marginHorizontal: 5}}>|</Text>
+              <Text style={styles.footerText}>
+                movies : {movies?.total_results}
+              </Text>
+            </View>
+          </View>
+        )}
+      </View>
     </SafeAreaView>
   );
 };
 
 const styles = StyleSheet.create({
   cardWrap: {
-    paddingVertical: 15,
-    paddingHorizontal: 25,
+    padding: 15,
     backgroundColor: '#fff',
   },
   card: {
@@ -101,6 +144,34 @@ const styles = StyleSheet.create({
     fontSize: 18,
     marginTop: 10,
     fontWeight: 'bold',
+  },
+  content: {
+    height: '80%',
+  },
+  footer: {
+    height: '20%',
+    backgroundColor: '#000',
+    color: '#fff',
+    padding: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  footerItem: {
+    alignItems: 'center',
+    display: 'flex',
+    flexDirection: 'row',
+    justifyContent: 'center',
+    margin: 3,
+  },
+  contentContainer: {
+    height: '100%',
+  },
+  footerText: {
+    color: '#fff',
+    fontSize: 13,
+    fontWeight: 'bold',
+    margin: 5,
+    textTransform: 'capitalize',
   },
 });
 
