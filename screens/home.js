@@ -15,15 +15,14 @@ import config from '../config';
 import {List, TextInput} from 'react-native-paper';
 
 const Home = () => {
-  const [movies, setMovies] = useState();
+  const [movies, setMovies] = useState([]);
   const [page, setPage] = useState(1);
   const [searchKey, setSearchKey] = useState('');
-  const [show, setShow] = useState(false)
 
   const ref = React.useRef(null);
 
   const getMovies = async () => {
-    setShow(false)
+    console.log(page, "page")
     try {
       const response = await fetch(
         `https://api.themoviedb.org/3/movie/popular?page=${page}&api_key=89deae649b2e4152238928670ed9d85f`,
@@ -36,7 +35,6 @@ const Home = () => {
   };
 
   const searchMovies = async () => {
-    setShow(false)
 
     try {
       const response = await fetch(
@@ -51,29 +49,23 @@ const Home = () => {
 
   const prevPage = () => {
     setPage(page - 1);
-    if (!searchKey.trim()) {
-      getMovies();
-    } else {
-      searchMovies();
-    }
-    ref.current?.scrollTo({
-      y: 0,
-      animated: true,
-    });
+  
+
   };
 
   const nextPage = () => {
     setPage(page + 1);
+ 
+ 
+  };
+
+  useEffect(() => {
+
     if (!searchKey.trim()) {
       getMovies();
     } else {
       searchMovies();
-    }
-    ref.current?.scrollTo({
-      y: 0,
-      animated: true,
-    });
-  };
+    }  }, [page]);
 
   useEffect(() => {
 
@@ -81,8 +73,7 @@ const Home = () => {
   }, []);
 
   useEffect(() => {
-    console.log(movies, "movies")
-        setShow(true)
+    console.log(movies?.results && movies?.results[0]?.original_title, page, "movies")
 
     ref.current?.scrollTo({
       y: 0,
@@ -130,11 +121,13 @@ const Home = () => {
             />
           </View>
           <ScrollView ref={ref} contentInsetAdjustmentBehavior="automatic">
-            {show &&
             <View style={styles.cardWrap}>
               {movies?.results?.map(e => {
                 return (
                   <View style={styles.card} key={e.id}>
+
+
+
                     <Image
                       style={{
                         width: '100%',
@@ -150,10 +143,10 @@ const Home = () => {
                   </View>
                 );
               })}
-            </View>}
+            </View>
           </ScrollView>
         </View>
-        {movies && (
+        {movies?.results?.length && (
           <View style={styles.footer}>
             <View style={styles.footerItem}>
               {page !== 1 && (
